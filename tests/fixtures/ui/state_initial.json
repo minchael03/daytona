@@ -1,0 +1,10 @@
+{
+  "busy": false,
+  "prepared": false,
+  "stage": "대기",
+  "error": null,
+  "revision": 0,
+  "can_fix": false,
+  "current_run_id": null,
+  "runs": []
+}

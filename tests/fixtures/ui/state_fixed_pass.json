@@ -1,0 +1,61 @@
+{
+  "busy": false,
+  "prepared": true,
+  "stage": "검사 완료",
+  "error": null,
+  "revision": 1,
+  "can_fix": false,
+  "current_run_id": "run-002",
+  "runs": [
+    {
+      "run_id": "run-002",
+      "revision": 1,
+      "status": "complete",
+      "elapsed_ms": 16200,
+      "error": null,
+      "artifacts": {
+        "screen": "/artifacts/run-002/screen.png",
+        "recording": "/artifacts/run-002/recorded.wav",
+        "result": "/artifacts/run-002/result.json"
+      },
+      "rules": {"status": "complete", "error": null, "elapsed_ms": 48, "findings": []},
+      "audio": {
+        "status": "complete", "error": null, "elapsed_ms": 14100,
+        "transcript": "결제가 완료되지 않았습니다. 다시 시도 버튼을 눌러 주세요.",
+        "verdict": "pass",
+        "summary": "결제 결과와 다음 행동이 모두 전달되었습니다.",
+        "provider": "openai", "model": "gpt-4.1-mini",
+        "checks": [
+          {"topic": "payment_result", "status": "delivered", "visual_evidence": "결제에 실패했습니다.", "provided_evidence": "결제가 완료되지 않았습니다.", "reason": "표현은 다르지만 동일한 의미입니다."},
+          {"topic": "next_action", "status": "delivered", "visual_evidence": "다시 시도 버튼을 눌러 주세요.", "provided_evidence": "다시 시도 버튼을 눌러 주세요.", "reason": "다음 행동이 전달되었습니다."}
+        ]
+      },
+      "alt_text": {"status": "not_run", "error": null, "elapsed_ms": null, "items": []}
+    },
+    {
+      "run_id": "run-001",
+      "revision": 0,
+      "status": "complete",
+      "elapsed_ms": 18000,
+      "error": null,
+      "artifacts": {
+        "screen": "/artifacts/run-001/screen.png",
+        "recording": "/artifacts/run-001/recorded.wav",
+        "result": "/artifacts/run-001/result.json"
+      },
+      "rules": {"status": "complete", "error": null, "elapsed_ms": 50, "findings": []},
+      "audio": {
+        "status": "complete", "error": null, "elapsed_ms": 15000,
+        "transcript": "결제를 처리 중입니다.",
+        "verdict": "fail",
+        "summary": "실패 결과와 재시도 안내가 음성에 없습니다.",
+        "provider": "openai", "model": "gpt-4.1-mini",
+        "checks": [
+          {"topic": "payment_result", "status": "missing", "visual_evidence": "결제에 실패했습니다.", "provided_evidence": "결제를 처리 중입니다.", "reason": "최종 결과가 없습니다."},
+          {"topic": "next_action", "status": "missing", "visual_evidence": "다시 시도 버튼을 눌러 주세요.", "provided_evidence": "결제를 처리 중입니다.", "reason": "다음 행동 안내가 없습니다."}
+        ]
+      },
+      "alt_text": {"status": "not_run", "error": null, "elapsed_ms": null, "items": []}
+    }
+  ]
+}
