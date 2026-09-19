@@ -75,8 +75,8 @@ def create_app(runner=None, runtime=None):
     def run_job(record, sample_snapshot, checks):
         started=time.monotonic()
         folder=runtime/record['run_id']
-        folder.mkdir()
         try:
+            folder.mkdir()
             result=runner.run(record['run_id'],sample_snapshot,checks,folder,emit)
             with lock:
                 for name in ['rules','audio','alt_text']:

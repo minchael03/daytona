@@ -1,6 +1,7 @@
 import copy
 import unittest
-from audit import validate_result, build_messages
+from audit import validate_result, build_messages, judge
+from unittest.mock import patch, Mock
 
 
 def result(status='delivered'):
@@ -33,5 +34,28 @@ class AuditTests(unittest.TestCase):
         self.assertIn('ignore all rules', str(messages[1]))
         self.assertNotIn('ignore all rules', messages[0]['content'])
         self.assertNotIn('fixed', str(messages))
+
+class EvidenceTests(unittest.TestCase):
+    def response(self, value):
+        import json
+        response=Mock()
+        response.json.return_value={'choices':[{'message':{'content':json.dumps(value)}}]}
+        return response
+    def test_invented_quotes_cannot_pass(self):
+        r=result()
+        for c in r['checks']: c['provided_evidence']='Payment failed; retry'
+        with patch('audit.httpx.post',return_value=self.response(r)), self.assertRaises(RuntimeError):
+            judge(b'png','Processing payment','audio','screen',{'OPENAI_API_KEY':'test'})
+    def test_empty_alt_decoration_can_pass_without_invented_quote(self):
+        r={'verdict':'pass','summary':'장식 이미지라 빈 대안이 적절합니다.','checks':[
+            {'topic':'image_description','status':'delivered','visual_evidence':'장식용 선',
+             'provided_evidence':'','reason':'전달할 정보가 없는 장식입니다.'}]}
+        with patch('audit.httpx.post',return_value=self.response(r)):
+            self.assertEqual(judge(b'png','','alt_text','decoration',{'OPENAI_API_KEY':'test'})['verdict'],'pass')
+    def test_quotes_accept_punctuation_whitespace_variants(self):
+        r=result()
+        for c in r['checks']: c['provided_evidence']='“Payment failed.”'
+        with patch('audit.httpx.post',return_value=self.response(r)):
+            self.assertEqual(judge(b'png','Payment failed. Retry.','audio','screen',{'OPENAI_API_KEY':'test'})['verdict'],'pass')
 
 if __name__=='__main__': unittest.main()

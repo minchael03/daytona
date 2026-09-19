@@ -70,6 +70,7 @@ def run(request, root):
                 query='?audio='+str(int(audio))+'&final='+str(int(request['final_audio']))
                 page.goto('http://127.0.0.1:'+str(server.server_port)+'/'+query,wait_until='networkidle')
                 if audio:
+                    audio_started=time.monotonic()
                     recording=subprocess.Popen(['ffmpeg','-y','-loglevel','error','-f','pulse','-i','a11y.monitor',
                         '-ac','1','-ar','16000','-c:a','pcm_s16le',str(folder/'recorded.wav')],stdin=subprocess.PIPE,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE)
                     time.sleep(.5)
@@ -86,6 +87,7 @@ def run(request, root):
                     except subprocess.TimeoutExpired:
                         recording.kill(); recording.communicate(); observed['audio_error']='녹음 종료 시간 초과'
                     recording=None
+                    observed['audio_capture_ms']=round((time.monotonic()-audio_started)*1000)
                 if 'rules' in request['checks']:
                     started=time.monotonic()
                     try:
