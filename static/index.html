@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>화면·음성 접근성 QA</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="page-header">
+    <h1>화면·음성 접근성 QA</h1>
+    <p class="scope-note">검증 범위: 최종 상태·다음 행동의 음성 전달. 데모용 결제 시나리오입니다.</p>
+  </header>
+
+  <main>
+    <section class="panel" aria-labelledby="controls-heading">
+      <h2 id="controls-heading">검사 제어</h2>
+
+      <fieldset class="checks">
+        <legend>실행할 검사</legend>
+        <label><input type="checkbox" name="check" value="rules" checked> 규칙 검사</label>
+        <label><input type="checkbox" name="check" value="audio" checked> 음성 의미 검사</label>
+        <label><input type="checkbox" name="check" value="alt_text" checked> 이미지 설명 검사</label>
+      </fieldset>
+
+      <div class="actions">
+        <button id="btn-prepare" type="button">환경 준비</button>
+        <button id="btn-run" type="button">검사 실행</button>
+        <button id="btn-fix" type="button">수정안 적용</button>
+        <button id="btn-reset" type="button">초기화</button>
+        <button id="btn-close" type="button">환경 종료</button>
+      </div>
+
+      <dl class="status-grid">
+        <dt>준비 상태</dt>
+        <dd id="status-prepared">-</dd>
+        <dt>진행 상태</dt>
+        <dd id="status-stage">-</dd>
+        <dt>실행 중 여부</dt>
+        <dd id="status-busy">-</dd>
+        <dt>현재 리비전</dt>
+        <dd id="status-revision">-</dd>
+      </dl>
+
+      <p id="status-error" class="error-text" role="alert" hidden></p>
+      <p id="action-error" class="error-text" role="alert" hidden></p>
+    </section>
+
+    <section class="panel" aria-labelledby="current-heading">
+      <h2 id="current-heading">현재 실행</h2>
+      <p id="current-empty" class="empty-note">아직 실행 결과가 없습니다.</p>
+
+      <div id="current-run" hidden>
+        <p>실행 ID: <span id="current-run-id"></span> · 상태: <span id="current-run-status"></span> · 소요 시간: <span id="current-run-elapsed"></span></p>
+        <p id="current-run-error" class="error-text" hidden></p>
+
+        <div class="evidence">
+          <figure>
+            <figcaption>캡처된 화면</figcaption>
+            <img id="current-screen" alt="검사 대상 화면 캡처">
+            <p id="current-screen-pending" class="empty-note">캡처 대기</p>
+          </figure>
+          <div class="recording">
+            <p>녹음</p>
+            <audio id="current-recording" controls></audio>
+            <p id="current-recording-pending" class="empty-note">캡처 대기</p>
+          </div>
+        </div>
+
+        <section aria-labelledby="rules-heading">
+          <h3 id="rules-heading">규칙 검사 결과 (<span id="rules-status"></span>)</h3>
+          <p id="rules-error" class="error-text" hidden></p>
+          <ul id="rules-findings" class="finding-list"></ul>
+        </section>
+
+        <section aria-labelledby="audio-heading">
+          <h3 id="audio-heading">음성 의미 검사 결과 (<span id="audio-status"></span>)</h3>
+          <p id="audio-error" class="error-text" hidden></p>
+          <p id="audio-meta"></p>
+          <p id="audio-transcript"></p>
+          <p>판정: <span id="audio-verdict"></span></p>
+          <p id="audio-summary"></p>
+          <ul id="audio-checks" class="finding-list"></ul>
+        </section>
+
+        <section aria-labelledby="alt-heading">
+          <h3 id="alt-heading">이미지 설명 검사 결과 (<span id="alt-status"></span>)</h3>
+          <p id="alt-error" class="error-text" hidden></p>
+          <ul id="alt-items" class="finding-list"></ul>
+        </section>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="compare-heading">
+      <h2 id="compare-heading">전후 비교</h2>
+      <p id="compare-empty" class="empty-note">비교할 이전 실행이 없습니다.</p>
+      <div id="compare-body" hidden>
+        <div class="compare-columns">
+          <div>
+            <h3>이전 실행</h3>
+            <p>실행 ID: <span id="prev-run-id"></span></p>
+            <p>음성 판정: <span id="prev-verdict"></span></p>
+            <audio id="prev-recording" controls></audio>
+          </div>
+          <div>
+            <h3>이번 실행</h3>
+            <p>실행 ID: <span id="curr-run-id"></span></p>
+            <p>음성 판정: <span id="curr-verdict"></span></p>
+            <audio id="curr-recording" controls></audio>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="runs-heading">
+      <h2 id="runs-heading">실행 기록</h2>
+      <ul id="runs-list" class="runs-list"></ul>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

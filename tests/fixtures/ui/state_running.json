@@ -1,0 +1,26 @@
+{
+  "busy": true,
+  "prepared": true,
+  "stage": "검사 진행 중",
+  "error": null,
+  "revision": 0,
+  "can_fix": false,
+  "current_run_id": "run-running-001",
+  "runs": [
+    {
+      "run_id": "run-running-001",
+      "revision": 0,
+      "status": "running",
+      "elapsed_ms": null,
+      "error": null,
+      "artifacts": {"screen": null, "recording": null, "result": null},
+      "rules": {"status": "running", "error": null, "elapsed_ms": null, "findings": []},
+      "audio": {
+        "status": "running", "error": null, "elapsed_ms": null,
+        "transcript": null, "verdict": null, "summary": null,
+        "provider": null, "model": null, "checks": []
+      },
+      "alt_text": {"status": "running", "error": null, "elapsed_ms": null, "items": []}
+    }
+  ]
+}

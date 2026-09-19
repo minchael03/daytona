@@ -1,0 +1,35 @@
+{
+  "busy": false,
+  "prepared": true,
+  "stage": "검사 완료(일부 오류)",
+  "error": null,
+  "revision": 0,
+  "can_fix": false,
+  "current_run_id": "run-003",
+  "runs": [
+    {
+      "run_id": "run-003",
+      "revision": 0,
+      "status": "partial",
+      "elapsed_ms": 9000,
+      "error": null,
+      "artifacts": {
+        "screen": "/artifacts/run-003/screen.png",
+        "recording": null,
+        "result": "/artifacts/run-003/result.json"
+      },
+      "rules": {
+        "status": "complete", "error": null, "elapsed_ms": 45,
+        "findings": [
+          {"rule_id": "contrast", "status": "fail", "target": "#help", "summary": "명도 대비가 기준에 못 미칩니다.", "evidence": {}, "basis": "wcag-1.4.3"}
+        ]
+      },
+      "audio": {
+        "status": "error", "error": "모델 API 오류: 시간 초과", "elapsed_ms": 8000,
+        "transcript": null, "verdict": null, "summary": null,
+        "provider": "openai", "model": "gpt-4.1-mini", "checks": []
+      },
+      "alt_text": {"status": "not_run", "error": null, "elapsed_ms": null, "items": []}
+    }
+  ]
+}
