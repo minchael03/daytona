@@ -37,4 +37,10 @@ class RunnerTests(unittest.TestCase):
             self.assertIsNone(report['audio']['verdict'])
             self.assertNotIn('private API secret',json.dumps(report))
 
+    def test_audio_duration_includes_preparation_and_capture(self):
+        with tempfile.TemporaryDirectory() as d, patch('runner.transcribe',return_value=('text',{})), patch('runner.judge',return_value={'verdict':'pass'}):
+            folder=Path(d); (folder/'screen.png').write_bytes(b'png')
+            report=analyze_observation({'audio_prepare_ms':2000,'audio_capture_ms':3500},['audio'],folder,{},lambda s:None)
+            self.assertGreaterEqual(report['audio']['elapsed_ms'],5500)
+
 if __name__=='__main__': unittest.main()

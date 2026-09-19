@@ -73,7 +73,7 @@ def analyze_observation(observed, checks, folder, config, emit):
             report['audio'].update(result,status='complete')
         except Exception as exc:
             report['audio'].update(status='error',error='음성 증거 처리 실패 ('+type(exc).__name__+')')
-        report['audio']['elapsed_ms']=round((time.monotonic()-started)*1000)
+        report['audio']['elapsed_ms']=round((time.monotonic()-started)*1000)+observed.get('audio_prepare_ms',0)+observed.get('audio_capture_ms',0)
     if 'alt_text' in checks:
         started=time.monotonic(); items=[]
         for candidate in observed.get('images',[]):
@@ -141,9 +141,10 @@ class DaytonaRunner:
         if (ROOT/'rules.py').exists(): self.sandbox.fs.upload_file(str(ROOT/'rules.py'),'/tmp/a11y/rules.py')
         for path in (ROOT/'sample').iterdir():
             if path.is_file(): self.sandbox.fs.upload_file(str(path),'/tmp/a11y/sample/'+path.name)
-        audio_ready=True
+        audio_ready=True; audio_prepare_ms=0
         if 'audio' in checks:
             emit('샘플 음성 자산 준비 중')
+            audio_started=time.monotonic()
             assets=self.runtime/'assets'; assets.mkdir(exist_ok=True)
             try:
                 for name,text in [('processing.wav','결제를 처리 중입니다.'),('failure.wav','결제가 완료되지 않았습니다. 다시 시도 버튼을 눌러 주세요.')]:
@@ -152,6 +153,7 @@ class DaytonaRunner:
                     self.sandbox.fs.upload_file(str(path),'/tmp/a11y/sample/'+name)
             except Exception:
                 audio_ready=False
+            audio_prepare_ms=round((time.monotonic()-audio_started)*1000)
         request={'run_id':run_id,'checks':checks,'final_audio':bool(sample['final_audio']),'audio_ready':audio_ready}
         self.sandbox.fs.upload_file(json.dumps(request).encode(),'/tmp/a11y/request.json')
         emit('Daytona 브라우저 실행·실제 출력 관찰 중')
@@ -163,6 +165,7 @@ class DaytonaRunner:
                     raise ValueError('Unexpected artifact path')
                 (output_dir/name).write_bytes(bundle.read(name))
         observed=json.loads((output_dir/'observed.json').read_text(encoding='utf-8'))
+        observed['audio_prepare_ms']=audio_prepare_ms
         result=analyze_observation(observed,checks,output_dir,self.config,emit)
         result['sandbox_id']=self.sandbox.id
         return result

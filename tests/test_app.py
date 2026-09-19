@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 from fastapi.testclient import TestClient
 from app import create_app
+from unittest.mock import patch
 
 class FakeRunner:
     def __init__(self): self.gate=threading.Event(); self.gate.set(); self.fail=False; self.closed=False
@@ -59,6 +60,23 @@ class AppTests(unittest.TestCase):
         self.assertEqual(self.client.get('/artifacts/not-a-run/screen.png').status_code,404)
         self.assertEqual(self.client.post('/api/reset').status_code,200)
         self.assertEqual(len(self.client.get('/api/state').json()['runs']),2)
+    def test_home_page_assets_are_served(self):
+        import re
+        page=self.client.get('/')
+        self.assertEqual(page.status_code,200)
+        for source in re.findall(r'(?:src|href)="([^" ]+\.(?:js|css))"',page.text):
+            url=source if source.startswith('/') else '/'+source
+            self.assertEqual(self.client.get(url).status_code,200,url)
+
+    def test_directory_failure_releases_job_lock(self):
+        self.prepare()
+        with patch('app.Path.mkdir',side_effect=PermissionError('disk unavailable')):
+            self.assertEqual(self.client.post('/api/run',json={'checks':['audio']}).status_code,202)
+            state=self.idle()
+        self.assertEqual(state['runs'][0]['status'],'error')
+        self.assertFalse(state['busy'])
+        self.assertEqual(self.client.post('/api/reset').status_code,200)
+
     def test_error_is_sanitized_and_releases_lock(self):
         self.prepare(); self.runner.fail=True
         self.client.post('/api/run',json={'checks':['audio']})
