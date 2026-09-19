@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>모먼트 카페 · 주문 결제</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f0e8;color:#203b33;font:18px/1.6 system-ui,sans-serif}main{max-width:860px;margin:34px auto;background:#fffdf7;padding:34px 44px;border:1px solid #d8d9cb;border-radius:20px}header{display:flex;justify-content:space-between;border-bottom:1px solid #d8d9cb;padding-bottom:20px}h1{font-size:32px;margin:24px 0 12px}.order{display:flex;gap:26px;align-items:center;margin:18px 0}.order img{width:280px;border-radius:12px}.details{flex:1}button{font:700 18px system-ui;padding:16px 24px;border:0;border-radius:10px;background:#244f3e;color:white;cursor:pointer}button:focus-visible{outline:4px solid #c46c20;outline-offset:4px}#payment-status{padding:16px;border-radius:12px;background:#f2f4eb;margin:22px 0}#payment-status[data-final=true]{background:#fff0e7;color:#842e12}#retry{background:#842e12}.fine{font-size:13px;color:#596357}label{display:block;margin-top:12px}input{font:inherit;width:100%;padding:8px;border:1px solid #7a877c;border-radius:6px}[hidden]{display:none!important}
+</style><main><header><strong>MOMENT CAFE</strong><span>주문번호 024</span></header><h1>주문을 확인해 주세요</h1><div class="order"><img id="offer" src="offer.svg" alt="오후 2시부터 5시까지 모든 음료 50% 할인"><div class="details"><strong>아이스 아메리카노</strong><p>2잔 · 8,000원</p><label for="order-name">주문자 이름 (선택)</label><input id="order-name" value="방문 고객"></div></div><p id="payment-status" role="status" aria-live="polite">결제 버튼을 눌러 주문을 완료하세요.</p><button id="pay">8,000원 결제하기</button><button id="retry" hidden>다시 시도</button><p class="fine">접근성 QA를 위한 시연용 페이지입니다. 실제 결제는 진행되지 않습니다.</p></main>
+<script>
+const params=new URLSearchParams(location.search);
+const sound=params.get('audio')==='1';
+const finalSound=params.get('final')==='1';
+function play(name){return new Promise(resolve=>{const a=new Audio(name);a.onended=resolve;a.onerror=resolve;a.play().catch(resolve);});}
+async function payment(){
+  document.querySelector('#pay').disabled=true;
+  document.querySelector('#retry').hidden=true;
+  const status=document.querySelector('#payment-status');
+  status.removeAttribute('data-final');status.textContent='결제를 처리 중입니다.';
+  if(sound) await play('processing.wav'); else await new Promise(r=>setTimeout(r,300));
+  status.textContent='결제에 실패했습니다. 다시 시도 버튼을 눌러 주세요.';
+  status.dataset.final='true';document.querySelector('#retry').hidden=false;
+  if(sound && finalSound) await play('failure.wav');
+}
+document.querySelector('#pay').addEventListener('click',payment);
+document.querySelector('#retry').addEventListener('click',payment);
+</script></html>

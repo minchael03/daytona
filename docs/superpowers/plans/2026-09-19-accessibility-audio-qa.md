@@ -322,3 +322,15 @@ git push -u origin agent/rules-ui
 ### 협업 계획 검토
 
 독립 읽기 전용 검토의 제안(파일 소유권, sync Playwright, JSON 상태, can_fix, 오류 응답)을 반영했다. snapshot 내부 구현을 공유 계약에서 제외해 불필요한 결합을 줄였다. 기존 5가지 규칙과 2가지 AI 작업 범위 유지 여부를 자체 검토했다. 제품 구현·통합 테스트는 아직 없다.
+
+## 실행 기록 (리드)
+
+- 사용자 분업 승인 후 lead/integration에서 착수. 전용 독립 clone을 사용하며 새 worktree는 만들지 않는다.
+- Ruling: 진행 기록은 사용자 지시대로 이 계획에 유지한다. 별도 중복 ledger/checklist를 만들지 않는다.
+- Pre-flight: rules.scan(sync page) → worker; runner.run → app; app JSON → UI 계약 확인. 외부 담당 파일은 수정하지 않는다.
+- API·AI 판정 계약: 모듈 없음으로 RED 확인 후 구현, unittest 6개 GREEN. 작성 코드 단순화 검토: 별도 서비스 계층 없이 단일 잠금·함수 유지.
+- Ruling: ASR·AI·TTS는 로컬 runner에서 호출하고 Daytona worker는 브라우저 실행·녹음·DOM 증거를 담당한다. API 키를 원격에 복사하지 않고도 실제 Daytona 출력 검증이 가능하며 사용자 흐름·공개 API 계약은 동일하다.
+- OpenAI 음성/전사/Chat Completions 공식 API 문서 확인. Nosana는 선택 통합으로 핵심 실제 실행 검증 이후 다룬다.
+- 리드 테스트 10개 GREEN: API 3, AI 계약 3, 녹음/분기 3, 실제 로컬 Chromium 샘플·이미지 증거 1. 기존 Starlette의 httpx deprecation 경고는 동작 실패와 구분한다.
+- GREEN 단순화 검토: 모델 호출은 audit에, 오디오 공급자 호출은 runner에 한정. worker는 비밀키 없는 증거 수집 전용. 불필요한 프레임워크를 추가하지 않았다.
+- 실제 Daytona 전후 리허설 실행 중. 이 커밋은 외부 rules/UI 통합 전 리드 구현이며 전체 MVP 완료를 의미하지 않는다.
