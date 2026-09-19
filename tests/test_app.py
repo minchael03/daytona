@@ -60,6 +60,14 @@ class AppTests(unittest.TestCase):
         self.assertEqual(self.client.get('/artifacts/not-a-run/screen.png').status_code,404)
         self.assertEqual(self.client.post('/api/reset').status_code,200)
         self.assertEqual(len(self.client.get('/api/state').json()['runs']),2)
+    def test_home_page_assets_are_served(self):
+        import re
+        page=self.client.get('/')
+        self.assertEqual(page.status_code,200)
+        for source in re.findall(r'(?:src|href)="([^" ]+\.(?:js|css))"',page.text):
+            url=source if source.startswith('/') else '/'+source
+            self.assertEqual(self.client.get(url).status_code,200,url)
+
     def test_directory_failure_releases_job_lock(self):
         self.prepare()
         with patch('app.Path.mkdir',side_effect=PermissionError('disk unavailable')):

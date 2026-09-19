@@ -184,3 +184,11 @@ input:focus-visible {
     grid-template-columns: 1fr;
   }
 }
+
+.image-evidence { width: 240px; max-width: 100%; border: 1px solid var(--border); }
+#audio-verdict { display:inline-block; padding: .2rem .6rem; border-radius:4px; font-size:1.4rem; font-weight:800; }
+#audio-verdict[data-verdict="pass"] { color:#146c2e; background:#e1f4e6; }
+#audio-verdict[data-verdict="fail"] { color:#a4243b; background:#ffe5ea; }
+#audio-verdict[data-verdict="needs_review"] { color:#714800; background:#fff0cf; }
+summary { cursor:pointer; padding:.5rem 0; }
+summary:focus-visible { outline:3px solid #d78a00; }

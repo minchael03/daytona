@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>화면·음성 접근성 QA</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
   <header class="page-header">
@@ -26,7 +26,7 @@
       <div class="actions">
         <button id="btn-prepare" type="button">환경 준비</button>
         <button id="btn-run" type="button">검사 실행</button>
-        <button id="btn-fix" type="button">수정안 적용</button>
+        <button id="btn-fix" type="button">음성 안내 수정</button>
         <button id="btn-reset" type="button">초기화</button>
         <button id="btn-close" type="button">환경 종료</button>
       </div>
@@ -70,7 +70,7 @@
         <section aria-labelledby="rules-heading">
           <h3 id="rules-heading">규칙 검사 결과 (<span id="rules-status"></span>)</h3>
           <p id="rules-error" class="error-text" hidden></p>
-          <ul id="rules-findings" class="finding-list"></ul>
+          <details><summary>기본 규칙 상세 보기</summary><ul id="rules-findings" class="finding-list"></ul></details>
         </section>
 
         <section aria-labelledby="audio-heading">
@@ -118,6 +118,6 @@
     </section>
   </main>
 
-  <script src="app.js"></script>
+  <script src="/static/app.js"></script>
 </body>
 </html>

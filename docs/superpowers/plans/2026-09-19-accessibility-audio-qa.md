@@ -294,12 +294,12 @@ can_fix는 서버에서 결정: busy=false, 현재 revision의 완료된 실행�
 
 ### 리드 통합 체크리스트
 
-- [ ] 계획 검토 뒤 lead/integration에서 기존 Task 1–3의 리드 소유 항목 구현.
-- [ ] 외부 규칙 커밋의 diff·스펙·코드 품질 검토, 규칙 테스트 실행, JSON 직렬화·DOM 비변경 확인 후 정확한 SHA 병합.
-- [ ] rules만 실행하면 TTS/ASR/LLM 0회, AI 실패에도 규칙 보존 확인.
-- [ ] UI diff·API 계약·문자열 출력·가짜 결과 부재 확인 후 정확한 SHA 병합.
-- [ ] 전체 unittest, 실제 Daytona 누락→수정→새 녹음 pass, 이미지 정상/결함, 새 ID·파일, 동시 요청 409, 증거 경로 제약 확인.
-- [ ] 독립 최종 리뷰·브라우저 시연 후 결함 수정. README에 실제 완료 범위와 한계 기록.
+- [x] 계획 검토 뒤 lead/integration에서 기존 Task 1–3의 리드 소유 항목 구현.
+- [x] 외부 규칙 커밋의 diff·스펙·코드 품질 검토, 규칙 테스트 실행, JSON 직렬화·DOM 비변경 확인 후 정확한 SHA 병합.
+- [x] rules만 실행하면 TTS/ASR/LLM 0회, AI 실패에도 규칙 보존 확인.
+- [x] UI diff·API 계약·문자열 출력·가짜 결과 부재 확인 후 정확한 SHA 병합.
+- [x] 전체 unittest, 실제 Daytona 누락→수정→새 녹음 pass, 이미지 정상/결함, 새 ID·파일, 동시 요청 409, 증거 경로 제약 확인.
+- [x] 독립 최종 리뷰·브라우저 시연 후 결함 수정. README에 실제 완료 범위와 한계 기록.
 - [ ] main 최신 변경 fetch 후 확인, 충돌 해결·통합 검증 후 main 병합·push. 타인 작업 덮어쓰기 금지.
 
 ### Git 명령 예시
@@ -344,3 +344,10 @@ git push -u origin agent/rules-ui
 - JSON mode에서 잘못된 verdict 문자열을 반환한 불명확 합성 사례가 있어 strict JSON Schema를 적용했다. 부족한 화면/손상 전사 사례의 의미적 needs_review 판단은 아직 불안정하다. 완료했다고 체크하지 않으며 README 한계에 기록했다. 유효하지 않은 응답은 오류로 남는다.
 - 최종 strict schema + 증거 충분성 지시로 실제 결함/정상 녹음을 각 3회 재판정, 6/6 PASS. 이 결과는 재사용 증거 기반 모델 검증이지 새 브라우저 6회 실행이 아니다.
 - 원격 main의 09ff3d8은 사용자가 초기 리드 브랜치를 PR #1로 병합한 커밋이다. 해당 작업을 보존하고 최신 수정은 lead/integration에 공유한다.
+- 외부 작업 완료 통보 후 정확한 8114cdb(규칙 71f2fb6 포함)를 검토·통합했다. 통합 merge는 7855737이다. 제출 완료 후 통합 결함은 리드가 담당한다.
+- 정적 리소스 404 회귀 RED→GREEN: /static 경로로 수정. Windows 로컬 테스트의 Chromium 경로·fixture URI·실패 시 Playwright 정리도 보완했다.
+- 독립 규칙 리뷰 4개 그룹 재현 RED→GREEN: 숨긴 하위 요소·disabled 대비 제외, 불투명 자식 뒤 조상 CSS 효과 확인 필요, 장식 이미지 확인 필요, Chromium 계산 접근성 이름 사용. selector 임의 깊이 제한을 제거했다. 외부 접근성 엔진을 추가하거나 DOM을 변경하지 않는다.
+- 독립 UI 리뷰 및 브라우저 회귀 RED→GREEN: busy 버튼 상태, 이미지 실제 증거·모델, 음성 인용 근거, 규칙·이미지 섹션 시간. 후속 읽기 전용 리뷰에서 Important/Critical 미해결 없음. GREEN 단순화 검토 후 별도 렌더링 프레임워크 없이 기존 textContent 구조를 유지했다.
+- 통합 UI 실측: 6f7f517e58c147259da1395f09b593e0 전체 26.281초/audio fail → 음성 안내 수정 → 8673d80ed9304a4f90519ccd085777f5 전체 26.984초/audio pass. 두 실행 모두 rules complete, image pass. 새 run ID와 서로 다른 WAV SHA256, 실제 전사와 전후 비교 UI를 확인했다.
+- 녹음 HTTP audio/wav·9.96초 및 브라우저 readyState=4/error=null 확인. Codex 내장 브라우저 재생 클릭에서 탭 종료가 한 번 발생해 이 환경에서 청취 재생은 미검증으로 남긴다. 일반 브라우저 시연 시 수동 재생 확인 필요. UI 환경 종료 후 결과 보존·prepared=false·환경 종료 완료 확인.
+- 최종 전체 `python -m unittest discover -s tests -v`: 59개, 70.170초, OK. 실제 클라우드 검사 결과와 로컬 자동 테스트를 구별해 기록했다.

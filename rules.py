@@ -44,14 +44,14 @@ _COLLECT_JS = r"""
 
   function isRendered(el) {
     const style = getComputedStyle(el);
-    return style.display !== 'none' && style.visibility !== 'hidden';
+    return el.getClientRects().length > 0 && style.display !== 'none' && style.visibility !== 'hidden' && style.visibility !== 'collapse';
   }
 
   function selectorFor(el) {
     if (el.id) return '#' + CSS.escape(el.id);
     const path = [];
     let node = el;
-    while (node && node.nodeType === 1 && path.length < 6) {
+    while (node && node.nodeType === 1) {
       let part = node.tagName.toLowerCase();
       if (node.classList.length) part += '.' + Array.from(node.classList).map(c => CSS.escape(c)).join('.');
       const parent = node.parentElement;
@@ -66,6 +66,10 @@ _COLLECT_JS = r"""
   }
 
   function resolveBackground(el) {
+    for (let ancestor = el; ancestor; ancestor = ancestor.parentElement) {
+      const effect = getComputedStyle(ancestor);
+      if (parseFloat(effect.opacity) < 1 || effect.filter !== 'none' || effect.transform !== 'none' || effect.mixBlendMode !== 'normal' || effect.textShadow !== 'none' || (effect.backdropFilter && effect.backdropFilter !== 'none')) return {unresolvable:true};
+    }
     let node = el;
     while (node) {
       const style = getComputedStyle(node);
@@ -115,6 +119,7 @@ _COLLECT_JS = r"""
       selector: selectorFor(img),
       hasAlt,
       alt,
+      decorative: ['presentation','none'].includes(img.getAttribute('role')) || !!img.closest('[aria-hidden="true"]'),
       ariaLabel: name.ariaLabel,
       ariaLabelledbyText: name.ariaLabelledbyText,
       title: name.title,
@@ -139,6 +144,7 @@ _COLLECT_JS = r"""
     results.formControls.push({
       selector: selectorFor(control),
       labelText: labelText || null,
+      hasLabel: !!(control.labels && control.labels.length),
       ariaLabel: name.ariaLabel,
       ariaLabelledbyText: name.ariaLabelledbyText,
       title: name.title,
@@ -165,7 +171,7 @@ _COLLECT_JS = r"""
     if (!isRendered(btn)) return;
     results.buttons.push(Object.assign({ selector: selectorFor(btn) }, buttonNameInfo(btn)));
   });
-  document.querySelectorAll('input[type="button" i], input[type="submit" i], input[type="reset" i]').forEach(btn => {
+  document.querySelectorAll('input[type="button" i], input[type="submit" i], input[type="reset" i], input[type="image" i]').forEach(btn => {
     if (!isRendered(btn)) return;
     results.buttons.push(Object.assign({ selector: selectorFor(btn) }, buttonNameInfo(btn)));
   });
@@ -178,7 +184,7 @@ _COLLECT_JS = r"""
       const hasDirectText = Array.from(node.childNodes).some(
         c => c.nodeType === 3 && c.textContent.trim().length > 0
       );
-      if (hasDirectText && isRendered(node) && !seen.has(node)) {
+      if (hasDirectText && isRendered(node) && !node.closest(':disabled, [aria-disabled="true"]') && !seen.has(node)) {
         seen.add(node);
         const info = textInfo(node);
         if (info.unresolvable) {
@@ -247,7 +253,9 @@ def _image_alt_findings(images):
     findings = []
     for img in images:
         target = img["selector"]
-        if img["ariaLabel"] or img["ariaLabelledbyText"]:
+        if img.get("decorative"):
+            status, summary = "needs_review", "장식 또는 접근성 트리 제외 의도가 적절한지 확인이 필요합니다."
+        elif img["ariaLabel"] or img["ariaLabelledbyText"]:
             status, summary = "pass", "유효한 ARIA 이름이 있습니다."
         elif img["hasAlt"] and img["alt"]:
             status, summary = "pass", "대체 텍스트가 있습니다."
@@ -278,7 +286,12 @@ def _form_label_findings(controls):
     findings = []
     for control in controls:
         target = control["selector"]
-        if control["labelText"] or control["ariaLabel"] or control["ariaLabelledbyText"]:
+        named = control["labelText"] or control["ariaLabel"] or control["ariaLabelledbyText"]
+        if "computedName" in control:
+            named = control["computedName"] and (control.get("hasLabel") or control["ariaLabel"] or control["ariaLabelledbyText"])
+        if control.get("nameResolved") is False:
+            status, summary = "needs_review", "브라우저의 접근 가능한 이름을 확인하지 못했습니다."
+        elif named:
             status, summary = "pass", "연결된 이름 근거가 있습니다."
         elif control["title"]:
             status, summary = "needs_review", "title만 있어 이름 근거가 불확실합니다."
@@ -290,6 +303,7 @@ def _form_label_findings(controls):
             "target": target,
             "summary": summary,
             "evidence": {
+                "computed_name": control.get("computedName"),
                 "label_text": control["labelText"],
                 "aria_label": control["ariaLabel"],
                 "aria_labelledby_text": control["ariaLabelledbyText"],
@@ -313,7 +327,11 @@ def _button_name_findings(buttons):
             or btn["title"]
             or btn["value"]
         )
-        if name:
+        if "computedName" in btn:
+            name = btn["computedName"]
+        if btn.get("nameResolved") is False:
+            status, summary = "needs_review", "브라우저의 접근 가능한 이름을 확인하지 못했습니다."
+        elif name:
             status, summary = "pass", "접근 가능한 이름이 있습니다."
         else:
             status, summary = "fail", "접근 가능한 이름이 없습니다."
@@ -323,6 +341,7 @@ def _button_name_findings(buttons):
             "target": target,
             "summary": summary,
             "evidence": {
+                "computed_name": btn.get("computedName"),
                 "aria_label": btn["ariaLabel"],
                 "aria_labelledby_text": btn["ariaLabelledbyText"],
                 "text_content": btn["textContent"],
@@ -394,5 +413,26 @@ def inspect_snapshot(snapshot):
 
 def scan(page):
     snapshot = page.evaluate(_COLLECT_JS)
+    controls = snapshot["formControls"] + snapshot["buttons"]
+    session = None
+    try:
+        session = page.context.new_cdp_session(page)
+        document = session.send("DOM.getDocument")["root"]["nodeId"]
+        tree = session.send("Accessibility.getFullAXTree")["nodes"]
+        names = {n["backendDOMNodeId"]: n.get("name", {}).get("value", "")
+                 for n in tree if "backendDOMNodeId" in n and not n.get("ignored")}
+        for control in controls:
+            control["nameResolved"] = False
+            node_id = session.send("DOM.querySelector", {"nodeId":document,"selector":control["selector"]})["nodeId"]
+            if node_id:
+                backend_id = session.send("DOM.describeNode", {"nodeId":node_id})["node"]["backendNodeId"]
+                if backend_id in names:
+                    control.update(nameResolved=True, computedName=names[backend_id])
+    except Exception:
+        for control in controls:
+            control.setdefault("nameResolved", False)
+    finally:
+        if session is not None:
+            session.detach()
     findings = inspect_snapshot(snapshot)
     return {"snapshot": snapshot, "findings": findings}

@@ -143,6 +143,8 @@
 
   function describeAudioCheck(check) {
     var parts = [check.topic, check.status, check.reason].filter(Boolean);
+    parts.push("화면 근거: " + (check.visual_evidence || "(없음)"));
+    parts.push("음성 근거: " + (check.provided_evidence || "(없음)"));
     return parts.join(" · ");
   }
 
@@ -198,7 +200,7 @@
     }
 
     var rules = run.rules || { status: "not_run", error: null, findings: [] };
-    text(els.rulesStatus, rules.status);
+    text(els.rulesStatus, rules.status + (rules.elapsed_ms == null ? "" : " · " + rules.elapsed_ms + "ms"));
     showError(els.rulesError, rules.error);
     renderFindingList(els.rulesFindings, rules.findings, describeRuleFinding);
 
@@ -212,13 +214,39 @@
     text(els.audioMeta, metaParts.join(" · "));
     text(els.audioTranscript, audio.transcript ? "전사: " + audio.transcript : "");
     text(els.audioVerdict, audio.verdict || "-");
+    els.audioVerdict.dataset.verdict = audio.verdict || "";
     text(els.audioSummary, audio.summary);
     renderFindingList(els.audioChecks, audio.checks, describeAudioCheck);
 
     var altText = run.alt_text || { status: "not_run", items: [] };
-    text(els.altStatus, altText.status);
+    text(els.altStatus, altText.status + (altText.elapsed_ms == null ? "" : " · " + altText.elapsed_ms + "ms"));
     showError(els.altError, altText.error);
-    renderFindingList(els.altItems, altText.items, describeAltItem);
+    els.altItems.replaceChildren();
+    findFinding(altText.items).forEach(function (item) {
+      var li = document.createElement("li");
+      var heading = document.createElement("p");
+      heading.textContent = describeAltItem(item);
+      li.appendChild(heading);
+      if (item.image_url) {
+        var img = document.createElement("img");
+        img.src = item.image_url;
+        img.alt = "검사한 이미지 증거: " + (item.target || "이미지");
+        img.className = "image-evidence";
+        li.appendChild(img);
+      }
+      var description = document.createElement("p");
+      description.textContent = "제공된 설명: " + (item.supplied_text || "(빈 대체 텍스트)");
+      li.appendChild(description);
+      var meta = document.createElement("p");
+      meta.textContent = [item.provider, item.model, item.elapsed_ms == null ? null : item.elapsed_ms + "ms", item.error].filter(Boolean).join(" · ");
+      li.appendChild(meta);
+      findFinding(item.checks).forEach(function (check) {
+        var evidence = document.createElement("p");
+        evidence.textContent = "이미지: " + (check.visual_evidence || "") + " / 설명: " + (check.provided_evidence || "") + " — " + (check.reason || "");
+        li.appendChild(evidence);
+      });
+      els.altItems.appendChild(li);
+    });
   }
 
   function renderCompare(state, currentRun) {
@@ -259,7 +287,8 @@
     var busy = !!state.busy;
     els.btnPrepare.disabled = busy;
     els.btnRun.disabled = busy || !state.prepared;
-    els.btnFix.disabled = !state.can_fix;
+    els.btnFix.disabled = busy || !state.can_fix;
+    els.btnRun.textContent = state.revision > 0 ? "재검사 실행" : "검사 실행";
     els.btnReset.disabled = busy;
     els.btnClose.disabled = busy || !state.prepared;
   }
@@ -311,11 +340,10 @@
       button.disabled = true;
       try {
         await handler();
-        await pollState();
       } catch (err) {
         showError(els.actionError, err.message);
       } finally {
-        button.disabled = false;
+        await pollState();
       }
     });
   }

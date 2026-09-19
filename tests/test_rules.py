@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import unittest
 
 from playwright.sync_api import sync_playwright
@@ -10,7 +11,7 @@ FIXTURES_DIR = os.path.join(os.path.dirname(__file__), "fixtures", "rules")
 
 def fixture_url(name):
     path = os.path.join(FIXTURES_DIR, name)
-    return "file://" + os.path.abspath(path)
+    return Path(path).resolve().as_uri()
 
 
 def find_finding(findings, rule_id, target):
@@ -47,12 +48,12 @@ class DomFixtureTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.playwright = sync_playwright().start()
-        cls.browser = cls.playwright.chromium.launch()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.browser.close()
-        cls.playwright.stop()
+        cls.addClassCleanup(cls.playwright.stop)
+        chrome=os.environ.get('CHROME_PATH')
+        if not chrome and Path('C:/Program Files/Google/Chrome/Application/chrome.exe').exists():
+            chrome='C:/Program Files/Google/Chrome/Application/chrome.exe'
+        cls.browser = cls.playwright.chromium.launch(executable_path=chrome)
+        cls.addClassCleanup(cls.browser.close)
 
     def setUp(self):
         self.page = self.browser.new_page()
