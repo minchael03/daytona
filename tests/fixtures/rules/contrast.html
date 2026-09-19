@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="utf-8"><title>contrast fixture</title></head>
+<body>
+  <p id="c-pass-normal" style="margin:0;color:#000000;background-color:#ffffff;font-size:16px;">검정 텍스트 흰 배경</p>
+  <p id="c-fail-same" style="margin:0;color:#5a5a5a;background-color:#5a5a5a;font-size:16px;">같은 회색 텍스트와 배경</p>
+  <p id="c-fail-normal-boundary" style="margin:0;color:#898989;background-color:#ffffff;font-size:16px;">일반 크기 대비 부족 텍스트</p>
+  <p id="c-pass-large-boundary" style="margin:0;color:#898989;background-color:#ffffff;font-size:24px;">큰 글자 대비 통과 텍스트</p>
+  <p id="c-pass-bold-large" style="margin:0;color:#898989;background-color:#ffffff;font-size:19px;font-weight:700;">굵은 큰 글자 대비 통과 텍스트</p>
+  <div style="background-image:linear-gradient(#ffffff,#000000);padding:8px;">
+    <p id="c-review-gradient" style="margin:0;color:#000000;">그라데이션 배경 위 텍스트</p>
+  </div>
+  <div style="background-color:transparent;padding:8px;">
+    <p id="c-review-transparent" style="margin:0;color:#000000;background-color:transparent;">투명 배경 텍스트</p>
+  </div>
+</body>
+</html>
