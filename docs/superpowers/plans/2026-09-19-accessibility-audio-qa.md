@@ -300,7 +300,7 @@ can_fix는 서버에서 결정: busy=false, 현재 revision의 완료된 실행�
 - [x] UI diff·API 계약·문자열 출력·가짜 결과 부재 확인 후 정확한 SHA 병합.
 - [x] 전체 unittest, 실제 Daytona 누락→수정→새 녹음 pass, 이미지 정상/결함, 새 ID·파일, 동시 요청 409, 증거 경로 제약 확인.
 - [x] 독립 최종 리뷰·브라우저 시연 후 결함 수정. README에 실제 완료 범위와 한계 기록.
-- [ ] main 최신 변경 fetch 후 확인, 충돌 해결·통합 검증 후 main 병합·push. 타인 작업 덮어쓰기 금지.
+- [x] main 최신 변경 fetch 후 확인, 충돌 해결·통합 검증 후 main 병합·push. 타인 작업 덮어쓰기 금지.
 
 ### Git 명령 예시
 
@@ -351,3 +351,4 @@ git push -u origin agent/rules-ui
 - 통합 UI 실측: 6f7f517e58c147259da1395f09b593e0 전체 26.281초/audio fail → 음성 안내 수정 → 8673d80ed9304a4f90519ccd085777f5 전체 26.984초/audio pass. 두 실행 모두 rules complete, image pass. 새 run ID와 서로 다른 WAV SHA256, 실제 전사와 전후 비교 UI를 확인했다.
 - 녹음 HTTP audio/wav·9.96초 및 브라우저 readyState=4/error=null 확인. Codex 내장 브라우저 재생 클릭에서 탭 종료가 한 번 발생해 이 환경에서 청취 재생은 미검증으로 남긴다. 일반 브라우저 시연 시 수동 재생 확인 필요. UI 환경 종료 후 결과 보존·prepared=false·환경 종료 완료 확인.
 - 최종 전체 `python -m unittest discover -s tests -v`: 59개, 70.170초, OK. 실제 클라우드 검사 결과와 로컬 자동 테스트를 구별해 기록했다.
+- 검증 코드 e53d476을 lead/integration에 push하고 main에 27be141로 병합·push 완료. fetch로 기존 원격 변경을 보존했고 병합 트리가 59개 테스트를 통과한 트리와 동일함을 git diff --exit-code로 확인했다. 서버는 127.0.0.1:8090에 유지하고 테스트 샌드박스는 삭제했다.
